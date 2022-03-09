@@ -1,21 +1,39 @@
 using DifferentialEquations
 
 μ = 10.0
+u0 = [1.0,0.0,0.01,1.1]
+tspan = (0.0,15.0)
 function Sharma2bp(du,u,p,t)
   du[1] = u[3]
   du[2] = u[4] # u2 is angle, [u4]=1/time.
   du[3] = u[1]*u[4]^2 - μ/u[1]^2
-  du[4] = -2*u[3]*u[4]/u[1]
+  du[4] = - u[3]*u[4] # -2*   /u[1]
 end
+
+prob = ODEProblem(Sharma2bp,u0,tspan)
+sol = solve(prob)
+
+plot(sol,vars=(1,2))
+savefig("test2.png")
+
 
 function σ_2bp(du,u,p,t)
-  du[1] = 0.0
-  du[2] = 0.0
-  du[3] = 0.0121*u[1]
-  du[4] = 0.00022/u[1]
+  # du[1] = 0.0
+  # du[2] = 0.0
+  # du[3] = 0.0121*u[1]
+  # du[4] = 0.00022/u[1]
+
+  du[1,1] = 0.0
+  du[1,2] = 0.0
+  du[2,1] = 0.0
+  du[2,2] = 0.0
+  du[3,1] = 0.0 # 121*u[1]
+  du[3,2] = 0.0
+  du[4,1] = 0.0
+  du[4,2] = 0.0 # 0022/u[1]
 end
 
-prob_sde_2bp = SDEProblem(Sharma2bp,σ_2bp,[1.0,0.0,0.01,1.1],(0.0,1500.0))
+prob_sde_2bp = SDEProblem(Sharma2bp,σ_2bp, u0, tspan, noise_rate_prototype=zeros(4,2), LambaEulerHeun())
 sol = solve(prob_sde_2bp)
 
 using Plots; plotly() # Using the Plotly backend
@@ -41,7 +59,7 @@ gif_range = range(1, stop = 150)
 anim = @animate for l in gif_range
     print(l/150)
     print(' ')
-    plot(x[1:800*l], y[1:800*l])
+    plot(x[1:l], y[1:l])
 end 
 
 gif(anim, "traj.gif", fps = 50)
@@ -51,4 +69,4 @@ vt = r.*sol[4, :]
 V = sqrt.(vr.^2+vt.^2)
 a = r./(2 .- r.*V.^2 ./ μ)
 plot(a)
-# savefig('semimajoraxis.png')
+savefig("semimajoraxis.png")

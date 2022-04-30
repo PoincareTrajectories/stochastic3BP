@@ -1,13 +1,22 @@
 using DifferentialEquations
+using Dates
 
-using Plots; plotly() # Using the Plotly backend
+using Plots; #plotly() # Using the Plotly backend
 
 #use GR module
 gr();
 
 μ = 10.0
 u0 = [1.0,0.0,0.01,1.1]
-tspan = (0.0,15.0)
+tspan = (0.0,1.0)
+
+# check if inital conditions exceed escape velocity 
+vₑ = √(μ/(u0[1]))
+v₀ = √(u0[3]^2 + u0[4]^2 * u0[1]^2)
+if vₑ < v₀ 
+  throw("Inital velocity is greater than escape velocity")
+end
+
 function Sharma2bp(du,u,p,t)
   du[1] = u[3]
   du[2] = u[4] # u2 is angle, [u4]=1/time.
@@ -53,15 +62,18 @@ r = sol[1, :]
 theta = sol[2, :]
 V = sqrt.(sol[3,:].^2 + (sol[4,:].*sol[1,:]).^2)
 energy = V.^2 / 2 - μ./r
-plot(energy)
+energy_plot = plot(energy)
 
-# x = r.*cos.(theta)
-# y = r.*sin.(theta)
-# plot(x, y)
-# savefig("traj.png")
+x = r.*cos.(theta)
+y = r.*sin.(theta)
+path_plot = plot(x, y)
 
+plot(path_plot, energy_plot, layoug=(2,1))
+date_string = Dates.format(now(), "YYYY_mm_dd-HH_MM")
+savefig("path_energy_" * date_string * ".png")
 # n = length(x)
 # gif_range = range(1, stop = 150)
+
 
 # anim = @animate for l in gif_range
 #     print(l/150)

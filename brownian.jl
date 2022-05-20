@@ -7,22 +7,21 @@ include("solvers.jl")
 #use GR module
 gr();
 
-u0 = 0.0
+u0 = [0.0]
 tspan = (0.0,10.0)
-function μ(du, u, p , t)
-    return sin(t)
+function μ(du, u, t)
+    du[1] = sin(t)
+    return du
 end
 
-function σ(du,u,p,t)
-    return 1
+function σ(du,u,t)
+    du[1] = 1
+    return du
 end
 
 # sol, t = solve(μ, σ, u0, tspan, dt = 0.1)
-# sol2, _ = solve(μ, σ, u0, tspan, dt = 0.1)
-# sol3, _ = solve(μ, σ, u0, tspan, dt = 0.1)
-# sol4, _ = solve(μ, σ, u0, tspan, dt = 0.1)
-
-sols = Vector{Vector{Number}}()
+# plot(t, sol)
+sols = Vector{Any}()
 ts = Vector{Any}()
 for i in 1:100
     sol, t = solve(μ, σ, u0, tspan, dt = 0.1)
@@ -33,3 +32,28 @@ end
 plot(ts, sols)
 date_string = Dates.format(now(), "YYYY_mm_dd-HH_MM")
 savefig("MC-solutions" * date_string)
+
+################################################################
+# running the Lotka-Volterra SDE
+################################################################
+
+u0 = [100.0, 20.0]
+tspan = (0.0, 25.0)
+
+function mu(du, u, t)
+    du[1] = u[1] * ( 1- 0.02 * u[2] )
+    du[2] = u[2] * ( 0.01 * u[1] - 1)
+    return du
+end
+
+function sigma(du, u, t)
+    du[1] = 5
+    du[2] = 5
+    return du
+end
+
+lotka_volterra, t = solve(mu, sigma, u0, tspan, dt=0.01)
+@show size(lotka_volterra)
+plot(t, lotka_volterra)
+savefig("Lotka Volterra" * date_string)
+

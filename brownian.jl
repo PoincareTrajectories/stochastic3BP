@@ -37,8 +37,8 @@ savefig("MC-solutions" * date_string)
 # running the Lotka-Volterra SDE
 ################################################################
 
-u0 = [100.0, 20.0]
-tspan = (0.0, 25.0)
+u0 = [2.5, 45.0]
+tspan = (0.0, 10.0)
 
 function mu(du, u, t)
     du[1] = u[1] * ( 1- 0.02 * u[2] )
@@ -52,7 +52,7 @@ function sigma(du, u, t)
     return du
 end
 
-lotka_volterra, t = solve(mu, sigma, u0, tspan, dt=0.01)
+lotka_volterra, t = solve(mu, sigma, u0, tspan, :ssrkw1, dt=0.01)
 @show size(lotka_volterra)
 plot(t, lotka_volterra)
 savefig("Lotka Volterra" * date_string)

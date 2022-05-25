@@ -7,7 +7,7 @@ gr();
 
 μ = 10.0
 u0 = [1.0,0.0,0.01,1.1]
-tspan = (0.0,15.0)
+tspan = (0.0,5.0) #15.0
 function Sharma2bp(du,u,p,t)
   du[1] = u[3]
   du[2] = u[4] # u2 is angle, [u4]=1/time.
@@ -15,22 +15,27 @@ function Sharma2bp(du,u,p,t)
   du[4] = -2*u[3]*u[4]/u[1]
 end
 
-# prob = ODEProblem(Sharma2bp,u0,tspan)
-# sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
+prob = ODEProblem(Sharma2bp,u0,tspan)
+sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
 
-# r = sol[1, :]
-# theta = sol[2, :]
+r = sol[1, :]
+# print(r)
+theta = sol[2, :]
+V = sqrt.(sol[3,:].^2 + (sol[4,:].*sol[1,:]).^2)
+energy = V.^2 / 2 - μ./r
+plot(energy)
+savefig("deterministic_energy.png")
 
-# x = r.*cos.(theta)
-# y = r.*sin.(theta)
-
-# plot(x, y)
+x = r.*cos.(theta)
+y = r.*sin.(theta)
+plot(x, y)
+savefig("deterministic_traj.png")
 
 function σ_2bp(du,u,p,t)
   # du[1] = 0.0
   # du[2] = 0.0
-  # du[3] = 0.0121*u[1]
-  # du[4] = 0.00022/u[1]
+  # du[3] = 0.0  # 0.0121*u[1]
+  # du[4] = 0.0  # 0.00022/u[1]
 
   du[1,1] = 0.0
   du[1,2] = 0.0
@@ -43,7 +48,9 @@ function σ_2bp(du,u,p,t)
 end
 
 prob_sde_2bp = SDEProblem(Sharma2bp,σ_2bp, u0, tspan, noise_rate_prototype=zeros(4,2))
-sol = solve(prob_sde_2bp, EM(), dt=0.000001)
+sol = solve(prob_sde_2bp, EM(), dt=0.00001)
+# sol = solve(prob_sde_2bp, SOSRA(), tol=1e-6, reltol=1e-6, abstol=1e-6, maxiter=1e10)
+# sol = solve(prob_sde_2bp, LambaEM(), tol=1e-9, reltol=1e-9, abstol=1e-9)
 
 # plot(sol,vars=(1,2))
 # savefig("test.png")
@@ -53,7 +60,9 @@ r = sol[1, :]
 theta = sol[2, :]
 V = sqrt.(sol[3,:].^2 + (sol[4,:].*sol[1,:]).^2)
 energy = V.^2 / 2 - μ./r
-plot(energy)
+plot(energy) #  , ylims=(-9.39496, -9.39494)
+savefig("stochastic_energy.png")
+
 
 # x = r.*cos.(theta)
 # y = r.*sin.(theta)

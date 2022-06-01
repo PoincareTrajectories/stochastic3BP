@@ -52,7 +52,7 @@ function sigma(du, u, t)
     return du
 end
 
-lotka_volterra, t = solve(mu, sigma, u0, tspan, :ssrkw1, dt=0.01)
+lotka_volterra, t = solve(mu, sigma, u0, tspan, :EM, dt=0.01, noise_rate_prototype=zeros(2,))
 @show size(lotka_volterra)
 plot(t, lotka_volterra)
 savefig("Lotka Volterra" * date_string)

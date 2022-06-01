@@ -3,7 +3,7 @@ export solve
 
 function euler_maruyama(μ, σ, t, u0, dt, ΔW, du)
     # @show μ(du, u0, t)
-    return u0 + μ(du, u0, t) *dt + σ(du, u0,  t) * ΔW
+    return u0 + μ(du, u0, t) *dt + σ(du, u0,  t) .* ΔW
 end
 
 function ssrkw1(μ, σ, t, u0, dt, ΔW, du)
@@ -29,7 +29,7 @@ function solve(μ, σ, u0, tspan, s=:EM; dt=0.01, noise_rate_prototype=zeros(1,1
     u[1,:] = u0
     d =  Normal(0.0, √dt)
     for i in 1:n-1
-        u[i+1,:] = solver(μ, σ, tvec[i],u[i,:],dt, rand(d), Vector{Float64}(undef, length(u0)))  
+        u[i+1,:] = solver(μ, σ, tvec[i],u[i,:],dt, rand(d, size(noise_rate_prototype)), Vector{Float64}(undef, length(u0)))  
     end
     return u, tvec
 end

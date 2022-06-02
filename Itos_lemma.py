@@ -1,47 +1,68 @@
+# 
+
 import sympy as sy
 import numpy as np
 
+def ItosLemma(mu, sigma, X, h):
+    """
+    This function applies Ito's lemma given a twice-differentiable,
+    invertible function h: Y = h(X) and drift (mu, vector) and diffusion (sigma, matrix) for a
+    stochastic process (X) satisfying SDE
+      dX = mu(X,t) dt + sigma(X,t) dB
+
+    This routine returns the new drift and diffusion
+      dY = new_mu(X,t) dt + new_sigma(X,t) dB
+    
+    See Bernt Øksendal, Stochastic Differential Equations, section 4.2 for details.
+    """
+
+    new_mu = 0
+    new_sigma = 0
+    return [new_mu, new_sigma]
+
 r, theta, vr, v_theta, sigma_r, sigma_theta = sy.symbols('r theta vr v_theta sigma_r sigma_theta')
 
-# a = sy.sin(theta)
-# b = r
-# c = a*b
-# d = 1.5 + c
+X = sy.Matrix([r, theta, vr, v_theta])
 
-# X = Matrix([r, theta, vr, v_theta])
-# h = Matrix([r * sympy.cos(theta), r * sympy.sin(theta), vr * sympy.cos(theta) - r * v_theta * sympy.sin(theta),
-#             vr * sympy.sin(theta) + r * v_theta * sympy.cos(theta)])
-#
-# dh_dX = h.jacobian(X)
-# # print(dh_dX)
-#
-# f = Matrix([vr, v_theta, 0, 0])
-# G = Matrix([[0, 0], [0, 0], [sigma_r, 0], [0, sigma_theta]])
-#
-# # print(G)
-#
-# dh1_dX = dh_dX[0, :]
-# # print(dh1_dX)
-# d2h1_dX2 = dh1_dX.jacobian(X)
-#
-# # print(d2h1_dX2)
-#
-# dh2_dX = dh_dX[1, :]
-# d2h2_dX2 = dh2_dX.jacobian(X)
-# # print(d2h2_dX2)
-#
-#
-# dh3_dX = dh_dX[2, :]
-# d2h3_dX2 = dh3_dX.jacobian(X)
-# # print(d2h3_dX2)
-#
-# dh4_dX = dh_dX[3, :]
-# d2h4_dX2 = dh4_dX.jacobian(X)
-# # print(d2h4_dX2)
-#
-# d2h_dX2 = [d2h1_dX2, d2h2_dX2, d2h3_dX2, d2h3_dX2]
-# print(d2h_dX2[0].row(1))
+Y = sy.Matrix([r * sy.cos(theta), r * sy.sin(theta), vr * sy.cos(theta) - r * v_theta * sy.sin(theta),
+            vr * sy.sin(theta) + r * v_theta * sy.cos(theta)])
 
+
+
+mu = sy.Matrix([vr, v_theta, 0, 0])
+sigma = sy.Matrix([[0, 0], [0, 0], [sigma_r, 0], [0, sigma_theta]])
+
+# test = ItosLemma(mu, sigma, X, Y)
+
+dh_dX = Y.jacobian(X)
+# print(dh_dX)
+
+
+# print(G)
+
+dh1_dX = dh_dX[0, :]
+# print(dh1_dX)
+d2h1_dX2 = dh1_dX.jacobian(X)
+
+# print(d2h1_dX2)
+
+dh2_dX = dh_dX[1, :]
+d2h2_dX2 = dh2_dX.jacobian(X)
+# print(d2h2_dX2)
+
+
+dh3_dX = dh_dX[2, :]
+d2h3_dX2 = dh3_dX.jacobian(X)
+# print(d2h3_dX2)
+
+dh4_dX = dh_dX[3, :]
+d2h4_dX2 = dh4_dX.jacobian(X)
+# print(d2h4_dX2)
+
+d2h_dX2 = [d2h1_dX2, d2h2_dX2, d2h3_dX2, d2h3_dX2]
+print(d2h_dX2[0].row(1))
+
+1/0
 # --------------------- Let's hard code it.
 m_111 = 0
 m_112 = -sy.sin(theta)
@@ -202,7 +223,7 @@ for i in range(m):
 
                 GT_d2h_dX2_ijg += prod
 
-                # ERROR HERE: IT DOES NOT LIKE NUMPY AND SYMPY TOGETHER, NOW HARD CODED WITH LISTS.
+                # ERROR HERE: IT DOES NOT LIKE NUMPY AND sy TOGETHER, NOW HARD CODED WITH LISTS.
                 # GT_d2h_dX2[i, j, k] = sy.Add(GT_d2h_dX2[i, j, k], prod)
                 # local = GT_d2h_dX2[i, j, k]
                 # print("local", local)

@@ -6,8 +6,9 @@ using Plots; #plotly() # Using the Plotly backend
 #use GR module
 gr();
 
-μ = 10.0
-u0 = [1.0,0.0,0.01,1.5]
+
+μ = 10.0;
+u0 = [1.0,0.0,0.01,1.5];
 tspan = (0.0,2.0)
 
 # check if inital conditions exceed escape velocity 
@@ -33,12 +34,12 @@ theta = sol[2, :]
 V = sqrt.(sol[3,:].^2 + (sol[4,:].*sol[1,:]).^2)
 energy = V.^2 / 2 - μ./r
 plot(energy)
-savefig("deterministic_energy.png")
+# savefig("deterministic_energy.png")
 
 x = r.*cos.(theta)
 y = r.*sin.(theta)
 plot(x, y)
-savefig("deterministic_traj.png")
+# savefig("deterministic_traj.png")
 
 function σ_2bp(du,u,p,t)
   # du[1] = 0.0
@@ -94,7 +95,8 @@ plot(path_plot, path_ode_plot, energy_plot, h_plot, layout=(2,2))
 date_string = Dates.format(now(), "YYYY_mm_dd-HH_MM")
 u0_string =   replace(string(u0), ['[', ']', ',']=> "")
 u0_string = replace(u0_string, [' '] => "_")
-savefig("path_energy_h_" * u0_string * date_string * ".png")
+# savefig("path_energy_h_" * u0_string * date_string * ".png")
+
 # n = length(x)
 # gif_range = range(1, stop = 150)
 
@@ -113,3 +115,25 @@ savefig("path_energy_h_" * u0_string * date_string * ".png")
 # a = r./(2 .- r.*V.^2 ./ μ)
 # plot(a)
 # savefig("semimajoraxis.png")
+
+################################################################
+# calculating the Hamiltonian directly
+################################################################`
+
+sigma_r = 0.0121
+sigma_theta = 0.00022
+function μ_H(du,u,p,t)
+  du[1] = 0.5 *  u[1] ^ 2 * sigma_theta ^2 
+end
+
+function σ_H(du,u,p,t)
+  du[1,1] = u[3] * sigma_r
+  du[1,2] = u[4] *(u[1] ^ 2)*sigma_theta 
+end
+
+prob_sde_2bp_hamiltonian = SDEProblem(μ_H, σ_H, u0, tspan, noise_rate_prototype=zeros(1,2))
+sol_hamiltonian = solve(prob_sde_2bp_hamiltonian, EM(), dt=0.001)
+plot(sol_hamiltonian, title="Hamiltonian")
+
+savefig("hamiltonian" * u0_string * date_string * ".png")
+

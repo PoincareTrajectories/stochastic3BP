@@ -21,7 +21,7 @@ function Sharma2bp(du,u,p,t)
   du[1] = u[3]
   du[2] = u[4] # u2 is angle, [u4]=1/time.
   du[3] = u[1]*u[4]^2 - μ/u[1]^2
-  du[4] = -2*u[3]*u[4]/u[1]
+  du[4] = -2*u[3]*u[4]/u[1] 
 end
 
 prob = ODEProblem(Sharma2bp,u0,tspan)

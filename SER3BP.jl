@@ -1,3 +1,6 @@
+# Placeholder for idea I had in 2020 while reading Gidea's work on Arnold diffusion and combining it with my work on nearly-integrable systems
+# with stochastic perturbation.
+
 using DifferentialEquations
 function f(du,u,p,f,W)
   den1 = (u[1] + mu)^2 + u[2]^2

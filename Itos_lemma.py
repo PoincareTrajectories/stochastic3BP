@@ -17,9 +17,12 @@ def ItosLemma(mu, sigma, X, h):
 
     # drift
     mu0 = sy.diff(h, t)
+    # print('mu0')
+    # print(sy.simplify(mu0))
 
     dh_dX = h.jacobian(X)
     mu1 = dh_dX * mu
+    # print('mu1')
     # print(sy.simplify(mu1))
 
     mu2 = []
@@ -36,7 +39,8 @@ def ItosLemma(mu, sigma, X, h):
       mu2.append(mu2_k/2)
     mu2 = np.expand_dims(mu2, axis=1)
 
-    # print(mu2)
+    print('mu2')
+    print(mu2)
 
     new_mu = mu0 + mu1 + mu2
 
@@ -85,13 +89,14 @@ r, theta, vr, omega, sigma_r, sigma_theta, mu_grav = sy.symbols('r theta vr omeg
 # Now I forget about polar coordinates and start from cartesian in inertial space:
 X, Y, VX, VY, x, y, vx, vy = sy.symbols('X Y VX VY x y vx vy')
 X_vec = sy.Matrix([X, Y, VX, VY])
+x_vec = sy.Matrix([x, y, vx, vy])
 
 At = sy.Matrix([[sy.cos(t), sy.sin(t)], [-sy.sin(t), sy.cos(t)]]) # Matrix such that X = At x
 
-mu_2 = 9.537e-4
-mu_1 = 1 - mu_2
+mu_grav = sy.symbols('mu_grav')
+mu_1 = 1 - mu_grav
 
-x_sun = sy.Matrix([-mu_2, 0])
+x_sun = sy.Matrix([-mu_grav, 0])
 x_jup = sy.Matrix([mu_1, 0])
 
 X_sun = At @ x_sun 
@@ -108,8 +113,9 @@ Y2 = sy.Matrix([Y - X_jup[1]])
 
 R1_3 = sy.Matrix([R1.dot(R1)**1.5])
 R2_3 = sy.Matrix([R2.dot(R2)**1.5])
+# R1_3, R2_3 = sy.symbols('R1_3 R2_3')
 
-mu = sy.Matrix([VX, VY, -mu_1*X1/R1_3[0] - mu_2*X2/R2_3[0], -mu_1*Y1/R1_3[0] - mu_2*Y2/R2_3[0]])
+mu_drift = sy.Matrix([VX, VY, -mu_1*X1/R1_3[0] - mu_grav*X2/R2_3[0], -mu_1*Y1/R1_3[0] - mu_grav*Y2/R2_3[0]])  # 
 # print(mu)
 
 # sigma comes from sigma_one, but expressed with respect to X_vec:
@@ -121,12 +127,43 @@ Atinv = sy.Matrix([[sy.cos(t), - sy.sin(t)], [sy.sin(t), sy.cos(t)]])
 AtinvJ = Atinv @ J
 
 Ct = sy.Matrix([[sy.cos(t), -sy.sin(t), 0, 0], [sy.sin(t), sy.cos(t), 0, 0], [sy.sin(t), sy.cos(t), sy.cos(t), -sy.sin(t)], [-sy.cos(t), sy.sin(t), sy.sin(t), sy.cos(t)]])
-h = Ct @ X_vec
-# print(h)
-mu_s3bp, sigma_s3bp = ItosLemma(mu, sigma, X_vec, h)
-print('Here are drift and diffusion in cartesian coordinates from two-body problem sigma only:')
-print(mu_s3bp)
-# print(sigma_s3bp)
 
-# https://github.com/MattCocci/ReusableCode/blob/master/Python/ItosLemma.py Implement inverse like this to have mu and sigma expressed in terms of
-# corotating coordinates, so that the Jacobi "constant" equations is trivial, and also the numerical implementation is.
+# print(Ct @ sy.Transpose(Ct))
+Ct_inv = Ct.inv() 
+# print(Ct_inv)
+Ct_inv = sy.Matrix([[sy.cos(t), sy.sin(t), 0, 0], [-sy.sin(t), sy.cos(t), 0, 0], [sy.sin(t), -sy.cos(t), sy.cos(t), sy.sin(t)], [sy.cos(t), sy.sin(t), -sy.sin(t), sy.cos(t)]])
+h = Ct @ X_vec
+h_inv = Ct_inv @ x_vec
+# print(h_inv)
+
+# h_inv = sy.solve(x_vec-h, X_vec).simplify()
+# print(h_inv)
+mu_s3bp, sigma_s3bp = ItosLemma(mu_drift, sigma, X_vec, h)
+# print('Here is drift in the rotating reference frame:')
+# print(mu_s3bp)
+
+mu_s3bp_x = mu_s3bp.subs(X, h_inv[0]).subs(Y, h_inv[1]).subs(VX, h_inv[2]).subs(VY, h_inv[3])
+for i in range(4):
+  print(mu_s3bp_x[i].simplify()) # These are in line with the deterministic one, as we should have expected.
+
+# print('Here is diffusion in the rotating reference frame:')
+sigma_s3bp_x = sigma_s3bp.subs(X, h_inv[0]).subs(Y, h_inv[1]).subs(VX, h_inv[2]).subs(VY, h_inv[3])
+# print(sigma_s3bp_x[4])
+for i in range(4):
+  i += 4
+  print(sigma_s3bp_x[i].simplify())
+
+# Print sde for Jacobi "constant"
+V = sy.Matrix([vx, vy])
+V_2 = sy.Matrix([V.dot(V)])
+Jacobi = sy.Matrix([x**2 + y**2 + 2*(1-mu_grav)/R1_3[0] + 2*mu_grav/R2_3[0]]) - V_2
+# print((Jacobi.jacobian(x_vec) * mu_s3bp_x).simplify()) # This is zero
+
+mu_Jacobi, sigma_Jacobi = ItosLemma(mu_s3bp_x, sigma_s3bp_x, x_vec, Jacobi)
+# print('Jacobi drift')
+# print(mu_Jacobi.simplify())
+print('Jacobi diffusion')
+for i in range(2):
+  print(sigma_Jacobi[i].simplify())
+
+# mu2_jacobi = sy.Matrix([[-sigma_r**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_r**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_theta**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2 - sigma_theta**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2]])

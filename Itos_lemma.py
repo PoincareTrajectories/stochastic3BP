@@ -146,24 +146,24 @@ mu_s3bp_x = mu_s3bp.subs(X, h_inv[0]).subs(Y, h_inv[1]).subs(VX, h_inv[2]).subs(
 for i in range(4):
   print(mu_s3bp_x[i].simplify()) # These are in line with the deterministic one, as we should have expected.
 
-# print('Here is diffusion in the rotating reference frame:')
+print('Here is diffusion in the rotating reference frame:')
 sigma_s3bp_x = sigma_s3bp.subs(X, h_inv[0]).subs(Y, h_inv[1]).subs(VX, h_inv[2]).subs(VY, h_inv[3])
 # print(sigma_s3bp_x[4])
 for i in range(4):
   i += 4
   print(sigma_s3bp_x[i].simplify())
 
-# Print sde for Jacobi "constant"
-V = sy.Matrix([vx, vy])
-V_2 = sy.Matrix([V.dot(V)])
-Jacobi = sy.Matrix([x**2 + y**2 + 2*(1-mu_grav)/R1_3[0] + 2*mu_grav/R2_3[0]]) - V_2
-# print((Jacobi.jacobian(x_vec) * mu_s3bp_x).simplify()) # This is zero
+# # Print sde for Jacobi "constant"
+# V = sy.Matrix([vx, vy])
+# V_2 = sy.Matrix([V.dot(V)])
+# Jacobi = sy.Matrix([x**2 + y**2 + 2*(1-mu_grav)/R1_3[0] + 2*mu_grav/R2_3[0]]) - V_2
+# # print((Jacobi.jacobian(x_vec) * mu_s3bp_x).simplify()) # This is zero
 
-mu_Jacobi, sigma_Jacobi = ItosLemma(mu_s3bp_x, sigma_s3bp_x, x_vec, Jacobi)
-# print('Jacobi drift')
-# print(mu_Jacobi.simplify())
-print('Jacobi diffusion')
-for i in range(2):
-  print(sigma_Jacobi[i].simplify())
+# mu_Jacobi, sigma_Jacobi = ItosLemma(mu_s3bp_x, sigma_s3bp_x, x_vec, Jacobi)
+# # print('Jacobi drift')
+# # print(mu_Jacobi.simplify())
+# print('Jacobi diffusion')
+# for i in range(2):
+#   print(sigma_Jacobi[i].simplify())
 
-# mu2_jacobi = sy.Matrix([[-sigma_r**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_r**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_theta**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2 - sigma_theta**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2]])
+# # mu2_jacobi = sy.Matrix([[-sigma_r**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_r**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2/((-x*sy.sin(t) + y*sy.cos(t))**2 + (x*sy.cos(t) + y*sy.sin(t))**2) - sigma_theta**2*(-(-x*sy.sin(t) + y*sy.cos(t))*sy.sin(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.cos(t))**2 - sigma_theta**2*((-x*sy.sin(t) + y*sy.cos(t))*sy.cos(t) + (x*sy.cos(t) + y*sy.sin(t))*sy.sin(t))**2]])

@@ -11,7 +11,7 @@ gr();
 
 μ = 3.0;
 u0 = [1.0,0.0,0.03,1.7];
-T = 2.0 ;
+T = 500.0 ;
 tspan = (0.0,T) ;
 t_array = range(0,stop=T,length=100) ;
 
@@ -64,7 +64,8 @@ function σ_2bp(du,u,p,t)
   du[4,2] = 0.00022/u[1]
 end
 
-Δt = 1e-4
+t_steps = 10000
+Δt = 1/t_steps
 
 prob_sde_2bp = SDEProblem(Sharma2bp,σ_2bp, u0, tspan, noise_rate_prototype=zeros(4,2))
 sol = solve(prob_sde_2bp, EM(), dt=Δt)
@@ -111,10 +112,10 @@ u0_string =   replace(string(u0), ['[', ']', ',']=> "")
 u0_string = replace(u0_string, [' '] => "_")
 savefig("path_energy_h_" * u0_string * date_string * ".png")
 
-nsamples = 2
+nsamples = 200
 
-energy_samples = []
-h_samples = []
+energy_samples = zeros(Int(t_steps*T+2), nsamples)
+h_samples = zeros(Int(t_steps*T+2), nsamples)
 
 for i in range(1, stop=nsamples)
   local_sol = solve(prob_sde_2bp, EM(), dt=Δt)
@@ -127,19 +128,26 @@ for i in range(1, stop=nsamples)
 
   h = r.^2 .*ω
 
-  global energy_samples = vcat(energy_samples, energy)
-  global h_samples = vcat(h_samples, h)
+  energy_samples[:, i] = energy
+  h_samples[:, i] = h
 end
 
-energy_mean = mean(energy_samples, dims=2)
-energy_std = std(energy_samples, dims=2)
+energy_mean = mean(energy_samples, dims=2);
+energy_std = std(energy_samples, dims=2);
 
-h_mean = mean(h_samples, dims=2)
-h_std = std(h_samples, dims=2)
+h_mean = mean(h_samples, dims=2);
+h_std = std(h_samples, dims=2);
 
-test = energy_samples
-# test = skewness(energy_samples[:, 2])
-# print(test)
+
+plot(sol.t, energy_mean, ribbon = energy_std , fillalpha = 0.35, c = 1, lw = 2, legend = :topleft, label = "Energy Diffusion", ylabel="E(t)", xlabel="t")
+savefig("EnergyDiffusion.png")
+
+plot(sol.t, h_mean, ribbon = h_std , fillalpha = 0.35, c = 1, lw = 2, legend = :topleft, label = "Angular Momentum Diffusion", ylabel="h(t)", xlabel="t")
+savefig("AngularMomentumDiffusion.png")
+
+
+
+
 
 # n = length(x)
 # gif_range = range(1, stop = 150)

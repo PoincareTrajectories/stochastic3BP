@@ -14,10 +14,10 @@ x_L4 = 0.5 - μ;
 y_L4 = sqrt(3)/2;
 y_L5 = - y_L4
 
-u0 = [x_L4,y_L4,0.0001,0.01]; #0.004
+u0 = [x_L4,y_L4,0.0,0.0]; #0.004
 
-tspan = (0.0,3000.0)
-Δt = 1e-5
+tspan = (0.0,30.0) #500
+Δt = 1e-4
 
 function r1(u)
 return sqrt((u[1] + μ)^2 + u[2]^2)
@@ -28,6 +28,7 @@ function r2(u)
 end
 
 function S3BP(du,u,p,t)
+    println(t)
     dΩx = u[1] - (1 - μ)*(u[1] + μ)/r1(u)^3 - μ*(u[1]-1+μ)/r2(u)^3
     dΩy = u[2] - u[2]*(1-μ)/r1(u)^3 - μ*u[2]/r2(u)^3
 
@@ -84,7 +85,9 @@ scatter!([(-μ, 0)], markersize=10, markercolor=:yellow, labels="Sun")
 scatter!([(1-μ, 0)], markersize=5, markercolor=:blue, labels="Earth")
 scatter!([(x_L4, y_L4)], markersize=3, markercolor=:black, labels="L4")
 scatter!([(x_L4, y_L5)], markersize=3, markercolor=:black, labels="L5")
-savefig("Stochastic_Trajectory.png")
+
+date_string = Dates.format(now(), "YYYY_mm_dd-HH_MM")
+savefig("Stochastic_Trajectory_" * string(σ_r) * "_" * string(σ_theta) * "_" * date_string * ".png")
 
 
 x = sol[1, :]
@@ -95,4 +98,4 @@ V2 = sol[3, :].^2 .+ sol[4, :].^2
 
 Jacobi = x.^2 .+ y.^2 .+ 2 .* (1 - μ)./r_1 .+ 2 .* μ ./ r_2 .- V2
 plot(Jacobi, labels="Stochastic Jacobi")
-savefig("Stochastic_Jacobi.png")
+savefig("Stochastic_Jacobi_" * string(σ_r) * "_" * string(σ_theta) * "_" * date_string * ".png")

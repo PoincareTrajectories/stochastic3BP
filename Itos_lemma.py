@@ -55,25 +55,44 @@ t = sy.symbols('t')
 
 # X:
 r, theta, vr, omega, sigma_r, sigma_theta, mu_grav = sy.symbols('r theta vr omega sigma_r sigma_theta mu_grav')
-# X_polar = sy.Matrix([r, theta, vr, omega])
+X_polar = sy.Matrix([r, theta, vr, omega])
 
-# # Stochastic Two-body problem:
-# mu = sy.Matrix([vr, omega, r*omega**2 - mu_grav/(r**2), -2*vr*omega/r])
-# sigma = sy.Matrix([[0, 0], [0, 0], [sigma_r, 0], [0, sigma_theta]])
+# Stochastic Two-body problem:
+mu = sy.Matrix([vr, omega, r*omega**2 - mu_grav/(r**2), -2*vr*omega/r])
+sigma = sy.Matrix([[0, 0], [0, 0], [sigma_r, 0], [0, sigma_theta]])
 
-# V = sy.Matrix([vr, r*omega])
-# V_2 = sy.Matrix([V.dot(V)])
+V = sy.Matrix([vr, r*omega])
+V_2 = sy.Matrix([V.dot(V)])
 
-# H = V_2/2 - sy.Matrix([mu_grav/r])
+################################################################
+# Hamiltonian
+################################################################
 
-# H_mu, H_sigma = ItosLemma(mu, sigma, X_polar, H)
+H = V_2/2 - sy.Matrix([mu_grav/r])
 
-# print('Here is the drift and diffusion for the total energy of the two-body problem:')
-# print(H_mu)
-# print(H_sigma)
-# print(' ')
+H_mu, H_sigma = ItosLemma(mu, sigma, X_polar, H)
 
-# # Y = h(X)
+print('Here is the drift and diffusion for the total energy of the two-body problem:')
+print(H_mu)
+print(H_sigma)
+print(' ')
+
+################################################################
+# Angular Momentum
+################################################################
+
+h = sy.Matrix([r**2 * omega])
+h_mu, h_sigma = ItosLemma(mu, sigma, X_polar, h)
+
+print('Here is the drift and diffusion for the angular momentus of the two-body problem:')
+print(h_mu)
+print(h_sigma)
+print(' ')
+
+################################################################
+# From polar to cartesian
+################################################################
+#
 # Y_polar = sy.Matrix([r * sy.cos(theta), r * sy.sin(theta), vr * sy.cos(theta) - r * omega * sy.sin(theta),
 #             vr * sy.sin(theta) + r * omega * sy.cos(theta)])
 
@@ -84,6 +103,7 @@ r, theta, vr, omega, sigma_r, sigma_theta, mu_grav = sy.symbols('r theta vr omeg
 # print(sigma_one)
 # # Matrix([[0, 0], [0, 0], [sigma_r*cos(theta), -r*sigma_theta*sin(theta)], [sigma_r*sin(theta), r*sigma_theta*cos(theta)]])
 # print(' ')
+
 
 # -----------------------------
 # Now I forget about polar coordinates and start from cartesian in inertial space:

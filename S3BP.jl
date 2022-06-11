@@ -14,10 +14,10 @@ x_L4 = 0.5 - μ;
 y_L4 = sqrt(3)/2;
 y_L5 = - y_L4
 
-u0 = [x_L4,y_L4,0.004,0.0];
+u0 = [x_L4,y_L4,0.0001,0.01]; #0.004
 
-tspan = (0.0,200.0)
-Δt = 0.001
+tspan = (0.0,3000.0)
+Δt = 1e-5
 
 function r1(u)
 return sqrt((u[1] + μ)^2 + u[2]^2)
@@ -38,8 +38,8 @@ function S3BP(du,u,p,t)
   end
 
 prob = ODEProblem(S3BP,u0,tspan)
-# sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
-sol = solve(prob, Euler(), dt= Δt)
+sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
+# sol = solve(prob, Euler(), dt= Δt)
 
 
 plot(sol, vars=(1,2), labels="Deterministic Trajectory")
@@ -60,8 +60,8 @@ plot(Jacobi, labels="Deterministic Jacobi")
 savefig("Deterministic_Jacobi.png")
 
 
-σ_r = 0.0121 * TU^(-3/2);
-σ_theta = 0.00022 * LU * TU^(-3/2);
+σ_r = 1e-4 # 0.0121 * TU^(-3/2);
+σ_theta = 1e-4 # 0.00022 * LU * TU^(-3/2);
 
 function σ_3bp(du,u,p,t)
     r = sqrt(u[1]^2 + u[2]^2)
@@ -76,8 +76,8 @@ function σ_3bp(du,u,p,t)
 end
 
 prob_sde_2bp = SDEProblem(S3BP,σ_3bp, u0, tspan, noise_rate_prototype=zeros(4,2))
-# sol = solve(prob_sde_2bp, EM(), dt=0.001)
 sol = solve(prob_sde_2bp, EM(), dt=Δt)
+# sol = solve(prob_sde_2bp, SRA3())
 
 plot(sol, vars=(1,2), labels="Stochastic Trajectory")
 scatter!([(-μ, 0)], markersize=10, markercolor=:yellow, labels="Sun")

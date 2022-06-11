@@ -26,7 +26,7 @@ function Sharma2bp(du,u,p,t)
 end
 
 prob = ODEProblem(Sharma2bp,u0,tspan)
-sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
+sol = solve(prob, Tsit5(), reltol=1e-15, abstol=1e-15)
 
 r = sol[1, :]
 # print(r)
@@ -34,12 +34,12 @@ theta = sol[2, :]
 V = sqrt.(sol[3,:].^2 + (sol[4,:].*sol[1,:]).^2)
 energy = V.^2 / 2 - μ./r
 plot(energy)
-# savefig("deterministic_energy.png")
+savefig("deterministic_energy.png")
 
 x = r.*cos.(theta)
 y = r.*sin.(theta)
 plot(x, y)
-# savefig("deterministic_traj.png")
+savefig("deterministic_traj.png")
 
 function σ_2bp(du,u,p,t)
   # du[1] = 0.0
@@ -120,20 +120,20 @@ u0_string = replace(u0_string, [' '] => "_")
 # calculating the Hamiltonian directly
 ################################################################`
 
-sigma_r = 0.0121
-sigma_theta = 0.00022
-function μ_H(du,u,p,t)
-  du[1] = 0.5 *  u[1] ^ 2 * sigma_theta ^2 
-end
+# sigma_r = 0.0121
+# sigma_theta = 0.00022
+# function μ_H(du,u,p,t)
+#   du[1] = 0.5 *  u[1] ^ 2 * sigma_theta ^2 
+# end
 
-function σ_H(du,u,p,t)
-  du[1,1] = u[3] * sigma_r
-  du[1,2] = u[4] *(u[1] ^ 2)*sigma_theta 
-end
+# function σ_H(du,u,p,t)
+#   du[1,1] = u[3] * sigma_r
+#   du[1,2] = u[4] *(u[1] ^ 2)*sigma_theta 
+# end
 
-prob_sde_2bp_hamiltonian = SDEProblem(μ_H, σ_H, u0, tspan, noise_rate_prototype=zeros(1,2))
-sol_hamiltonian = solve(prob_sde_2bp_hamiltonian, EM(), dt=0.001)
-plot(sol_hamiltonian, title="Hamiltonian")
+# prob_sde_2bp_hamiltonian = SDEProblem(μ_H, σ_H, u0, tspan, noise_rate_prototype=zeros(1,2))
+# sol_hamiltonian = solve(prob_sde_2bp_hamiltonian, EM(), dt=0.001)
+# plot(sol_hamiltonian, title="Hamiltonian")
 
-savefig("hamiltonian" * u0_string * date_string * ".png")
+# savefig("hamiltonian" * u0_string * date_string * ".png")
 
